@@ -1,2 +1,7 @@
 .vscode
 .venv
+.test
+*.egg-info
+build
+test
+__pycache__
