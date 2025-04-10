@@ -44,7 +44,7 @@ class DutchWiktionaryWord:
         # Get Dutch content
         self.xml_doc = ET.fromstring(data['parse']['text'])
 
-    def get_sound_file_url(self):
+    def try_get_sound_file_url(self):
         """Extract sound file URL from the Uitspraak section"""
         for elem in self.xml_doc:
             for a in elem.findall(".//a[@class='internal']"):
@@ -52,7 +52,7 @@ class DutchWiktionaryWord:
                     return "https:" + a.get('href')
         return None
 
-    def get_image_url(self):
+    def try_get_image_url(self):
         """Extract the first content image URL"""
         for elem in self.xml_doc:
             # First try images in thumbinner (images with captions)
@@ -89,7 +89,7 @@ class DutchWiktionaryWord:
                 return span.text
         return None
 
-    def get_article(self):
+    def try_get_article(self):
         """Determine if it's 'de' or 'het' based on genus markers"""
         # Find Zelfstandig naamwoord header and get next paragraph
         zn_found = False
@@ -178,7 +178,7 @@ class DutchWiktionaryWord:
 
     def try_download_sound(self):
         """Download the sound file and return the path"""
-        sound_url = self.get_sound_file_url()
+        sound_url = self.try_get_sound_file_url()
         if sound_url:
             extension = sound_url.rsplit('.', 1)[-1]
             sound_file_path = self.working_dir / self.word / f'{self.word}.{extension}'
@@ -195,7 +195,7 @@ class DutchWiktionaryWord:
 
     def try_download_image(self):
         """Download the image file and return the path"""
-        image_url = self.get_image_url()
+        image_url = self.try_get_image_url()
         if image_url:
             extension = image_url.rsplit('.', 1)[-1]
             image_file_path = self.working_dir / self.word / f'{self.word}.{extension}'

@@ -28,6 +28,20 @@ class AnkiDeckGenerator:
     def _make_word_dir(self, word):
         (self.working_dir / word).mkdir(parents=True, exist_ok=True)
 
+    def _load_css(self):
+        css_path = Path(__file__).parent / 'templates' / 'card_styles.css'
+        with open(css_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    def _load_template(self, template_name):
+        template_path = Path(__file__).parent / 'templates' / template_name
+        with open(template_path, 'r', encoding='utf-8') as f:
+            return (
+                f.read()
+                .replace('SOURCE_LANGUAGE', self.source_language)
+                .replace('TARGET_LANGUAGE', self.target_language)
+            )
+
     def _generate_model(self):
         return genanki.Model(
             random.randint(1, 2**31 - 1),
@@ -45,122 +59,16 @@ class AnkiDeckGenerator:
             templates=[
                 {
                     'name': f'{self.target_language}+{self.source_language} -> {self.source_language}',
-                    'qfmt': f"""
-                        <div class="card-header">
-                            <h1>{{{{{self.target_language}}}}}</h1>
-                        </div>
-                        <div class="card-image">
-                            {{{{Image}}}}
-                        </div>
-                        <div class="card-input">
-                            {{{{type:{self.source_language}}}}}
-                        </div>
-                    """,
-                    'afmt': """
-                        <div class="card-header">
-                            <h1>{{FrontSide}}</h1>
-                        </div>
-                        <hr id="answer">
-                        <div class="word-info">
-                            <div class="transcription">{{Transcription}}</div>
-                            <div class="part-of-speech">{{PartOfSpeech}}</div>
-                            <div class="plural">{{Plural}}</div>
-                        </div>
-                        <div class="card-usage">
-                            <p>{{Usage}}</p>
-                        </div>
-                        <div class="card-sound">
-                            {{Sound}}
-                        </div>
-                    """,
+                    'qfmt': self._load_template('target_to_source_question.html'),
+                    'afmt': self._load_template('target_to_source_answer.html'),
                 },
                 {
                     'name': f'{self.source_language}+{self.target_language} -> {self.target_language}',
-                    'qfmt': f"""
-                        <div class="card-header">
-                            <h1>{{{{{self.source_language}}}}}</h1>
-                        </div>
-                        <div class="word-info">
-                            <div class="transcription">{{{{Transcription}}}}</div>
-                            <div class="part-of-speech">{{{{PartOfSpeech}}}}</div>
-                            <div class="plural">{{{{Plural}}}}</div>
-                        </div>
-                        <div class="card-sound">
-                            {{{{Sound}}}}
-                        </div>
-                        <div class="card-input">
-                            {{{{type:{self.target_language}}}}}
-                        </div>
-                    """,
-                    'afmt': """
-                        {{FrontSide}}
-                        <hr id="answer">
-                        <div class="card-image">
-                            {{Image}}
-                        </div>
-                        <div class="card-usage">
-                            <p>{{Usage}}</p>
-                        </div>
-                    """,
+                    'qfmt': self._load_template('source_to_target_question.html'),
+                    'afmt': self._load_template('source_to_target_answer.html'),
                 },
             ],
-            css="""\
-.card {
-    font-family: 'Arial', sans-serif;
-    font-size: 18px;
-    text-align: center;
-    color: #333;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-.card-header h1 {
-    font-size: 24px;
-    color: #007BFF;
-    margin-bottom: 10px;
-}
-.card-image img {
-    max-width: 100%;
-    max-height: 300px;
-    object-fit: contain;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin: 10px 0;
-}
-.card-usage p {
-    font-style: italic;
-    color: #555;
-}
-.card-sound {
-    margin-top: 10px;
-}
-.card-input {
-    margin-top: 15px;
-}
-.word-info {
-    margin: 10px 0;
-    color: #666;
-}
-.transcription {
-    font-family: 'Arial', sans-serif;
-    color: #666;
-    font-size: 16px;
-    margin: 5px 0;
-}
-.part-of-speech {
-    font-style: italic;
-    color: #888;
-    font-size: 14px;
-    margin: 3px 0;
-}
-.plural {
-    color: #888;
-    font-size: 14px;
-    margin: 3px 0;
-}
-""",
+            css=self._load_css(),
         )
 
     def _make_note(self, word):
@@ -174,11 +82,13 @@ class AnkiDeckGenerator:
         transcription = None
         part_of_speech = None
         plural = None
+        article = None
 
         if self.source_language == 'Dutch':
             wiktionary = DutchWiktionaryWord(word, self.working_dir)
             # the quality is so bad, so better always use Reverso
             # sound_file = wiktionary.try_download_sound()
+            article = wiktionary.try_get_article()
             image_file = wiktionary.try_download_image()
             transcription = wiktionary.try_get_transcription()
             part_of_speech = wiktionary.try_get_part_of_speech()
@@ -191,7 +101,7 @@ class AnkiDeckGenerator:
 
         note = genanki.Note(
             model=self.model, fields=[
-                word,
+                f'{article} {word}' if article else word,
                 translation,
                 f'<img src="{image_file.name}">',
                 f'[sound:{sound_file.name}]',
