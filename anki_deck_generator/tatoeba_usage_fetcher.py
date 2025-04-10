@@ -27,6 +27,13 @@ class UsageExampleFetcher:
             'from': self.source_language,
             'to': self.target_language,
             'query': word,
+            'sort': 'relevance',
+            'orphans': 'no',
+            'unapproved': 'no',
+            'trans_filter': 'limit',
+            'trans_to': 'rus',
+            'word_count_min': '5',
+            'word_count_max': '10',
         }
         url = f'{self.TATOEBA_URL}?{urlencode(params)}'
 
