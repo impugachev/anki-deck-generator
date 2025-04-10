@@ -4,7 +4,7 @@ from pathlib import Path
 import genanki
 from anki_deck_generator.translators.deepl_translator import Translator
 from anki_deck_generator.voice.reverso_voice import ReversoVoice
-from anki_deck_generator.image_downloader import ImageDownloader
+from anki_deck_generator.google_image_downloader import ImageDownloader
 from anki_deck_generator.usage_fetcher import UsageExampleFetcher
 
 

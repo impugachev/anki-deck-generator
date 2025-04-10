@@ -13,7 +13,7 @@ class UsageExampleFetcher:
 
     def __init__(self, source_language, target_language):
         self.source_language, self.target_language = get_language_codes(
-            self.LANGUAGES, source_language, target_language
+            source_language, target_language, self.LANGUAGES
         )
         self.session = requests.Session()
 
