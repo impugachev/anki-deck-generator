@@ -2,7 +2,7 @@ import random
 import logging
 from pathlib import Path
 import genanki
-from anki_deck_generator.deepl_translator import Translator
+import anki_deck_generator.translators as translators
 from anki_deck_generator.reverso_voice import ReversoVoice
 from anki_deck_generator.dutch_wiktionary import DutchWiktionaryWord
 from anki_deck_generator.google_image_downloader import ImageDownloader
@@ -10,18 +10,17 @@ from anki_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
 
 
 class AnkiDeckGenerator:
-    def __init__(self, deck_name, source_language, target_language, deepl_api_key, working_dir):
+    def __init__(self, deck_name, source_language, target_language, working_dir):
         self.deck_name = deck_name
         self.source_language = source_language
         self.target_language = target_language
-        self.deepl_api_key = deepl_api_key
         self.working_dir = Path(working_dir)
         self.deck = genanki.Deck(random.randint(1, 2**31 - 1), deck_name)
         self.media = []
         self.model = self._generate_model()
 
         # Initialize helper classes
-        self.translator = Translator(self.deepl_api_key, self.source_language, self.target_language)
+        self.translator = translators.glosbe.Translator(self.source_language, self.target_language)
         self.reverso_voice = ReversoVoice(self.source_language, self.working_dir)
         self.image_downloader = ImageDownloader(self.working_dir)
         self.usage_fetcher = UsageExampleFetcher(self.source_language, self.target_language)
@@ -32,7 +31,7 @@ class AnkiDeckGenerator:
     def _generate_model(self):
         return genanki.Model(
             random.randint(1, 2**31 - 1),
-            'Gen model',
+            f'Generated Model {self.source_language} to {self.target_language}',
             fields=[
                 {'name': self.source_language},
                 {'name': self.target_language},

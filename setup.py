@@ -22,7 +22,7 @@ setup(
         'icrawler==0.6.10',
         'genanki==0.13.1',
         'requests==2.32.3',
-        'deepl==1.21.1',
+        'beautifulsoup4==4.12.3',
     ],
     entry_points={
         'console_scripts': [

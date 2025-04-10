@@ -10,7 +10,6 @@ def main():
         description='Generate simple Anki deck from list of words',
     )
     parser.add_argument('--deck-name', default='Generated deck', help='Name of the Anki deck')
-    parser.add_argument('--deepl-api-key', required=True, help='DeepL API key')
     parser.add_argument(
         '--words-file',
         required=True,
@@ -33,7 +32,6 @@ def main():
         deck_name=args.deck_name,
         source_language=args.source_language,
         target_language=args.target_language,
-        deepl_api_key=args.deepl_api_key,
         working_dir=working_dir,
     )
     words = []
