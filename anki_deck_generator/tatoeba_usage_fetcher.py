@@ -9,6 +9,16 @@ class UsageExampleFetcher:
         'English': 'eng',
         'Russian': 'rus',
         'Dutch': 'nld',
+        'Georgian': 'kat',
+        'Spanish': 'spa',
+        'French': 'fra',
+        'German': 'deu',
+        'Italian': 'ita',
+        'Japanese': 'jpn',
+        'Chinese': 'cmn',
+        'Korean': 'kor',
+        'Portuguese': 'por',
+        'Arabic': 'ara'
     }
 
     def __init__(self, source_language, target_language):

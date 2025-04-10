@@ -1,6 +1,21 @@
 LANGUAGES = {
     'Russian': 'ru',
     'Dutch': 'nl',
+    'Georgian': 'ka',
+    'English': 'en',
+    'Spanish': 'es',
+    'French': 'fr',
+    'German': 'de',
+    'Italian': 'it',
+    'Portuguese': 'pt',
+    'Chinese': 'zh',
+    'Japanese': 'ja',
+    'Korean': 'ko',
+    'Arabic': 'ar',
+    'Hindi': 'hi',
+    'Turkish': 'tr',
+    'Polish': 'pl',
+    'Swedish': 'sv',
 }
 
 
