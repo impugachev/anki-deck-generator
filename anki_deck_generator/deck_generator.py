@@ -2,8 +2,9 @@ import random
 import logging
 from pathlib import Path
 import genanki
-from anki_deck_generator.translators.deepl_translator import Translator
-from anki_deck_generator.voice.reverso_voice import ReversoVoice
+from anki_deck_generator.deepl_translator import Translator
+from anki_deck_generator.reverso_voice import ReversoVoice
+from anki_deck_generator.dutch_wiktionary import DutchWiktionaryWord
 from anki_deck_generator.google_image_downloader import ImageDownloader
 from anki_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
 
@@ -38,6 +39,9 @@ class AnkiDeckGenerator:
                 {'name': 'Image'},
                 {'name': 'Sound'},
                 {'name': 'Usage'},
+                {'name': 'Transcription'},
+                {'name': 'PartOfSpeech'},
+                {'name': 'Plural'},
             ],
             templates=[
                 {
@@ -58,6 +62,11 @@ class AnkiDeckGenerator:
                             <h1>{{FrontSide}}</h1>
                         </div>
                         <hr id="answer">
+                        <div class="word-info">
+                            <div class="transcription">{{Transcription}}</div>
+                            <div class="part-of-speech">{{PartOfSpeech}}</div>
+                            <div class="plural">{{Plural}}</div>
+                        </div>
                         <div class="card-usage">
                             <p>{{Usage}}</p>
                         </div>
@@ -72,6 +81,11 @@ class AnkiDeckGenerator:
                         <div class="card-header">
                             <h1>{{{{{self.source_language}}}}}</h1>
                         </div>
+                        <div class="word-info">
+                            <div class="transcription">{{{{Transcription}}}}</div>
+                            <div class="part-of-speech">{{{{PartOfSpeech}}}}</div>
+                            <div class="plural">{{{{Plural}}}}</div>
+                        </div>
                         <div class="card-sound">
                             {{{{Sound}}}}
                         </div>
@@ -80,9 +94,7 @@ class AnkiDeckGenerator:
                         </div>
                     """,
                     'afmt': """
-                        <div class="card-header">
-                            <h1>{{FrontSide}}</h1>
-                        </div>
+                        {{FrontSide}}
                         <hr id="answer">
                         <div class="card-image">
                             {{Image}}
@@ -128,6 +140,27 @@ class AnkiDeckGenerator:
 .card-input {
     margin-top: 15px;
 }
+.word-info {
+    margin: 10px 0;
+    color: #666;
+}
+.transcription {
+    font-family: 'Arial', sans-serif;
+    color: #666;
+    font-size: 16px;
+    margin: 5px 0;
+}
+.part-of-speech {
+    font-style: italic;
+    color: #888;
+    font-size: 14px;
+    margin: 3px 0;
+}
+.plural {
+    color: #888;
+    font-size: 14px;
+    margin: 3px 0;
+}
 """,
         )
 
@@ -136,19 +169,40 @@ class AnkiDeckGenerator:
 
         translation = self.translator.translate(word)
         usage = self.usage_fetcher.fetch_usage(word)
-        sound_file = self.reverso_voice.download_sound(word)
-        image_file = self.image_downloader.download_image(word)  # TODO: give a choice to use translation as a query
+
+        sound_file = None
+        image_file = None
+        transcription = None
+        part_of_speech = None
+        plural = None
+
+        if self.source_language == 'Dutch':
+            wiktionary = DutchWiktionaryWord(word, self.working_dir)
+            # the quality is so bad, so better always use Reverso
+            # sound_file = wiktionary.try_download_sound()
+            image_file = wiktionary.try_download_image()
+            transcription = wiktionary.try_get_transcription()
+            part_of_speech = wiktionary.try_get_part_of_speech()
+            plural = wiktionary.try_get_plural_form()
+
+        if sound_file is None:
+            sound_file = self.reverso_voice.download_sound(word)
         if image_file is None:
-            image_field = ''
-            image_media = []
-        else:
-            image_field = f'<img src="{image_file.name}">'
-            image_media = [image_file]
+            image_file = self.image_downloader.download_image(word)  # TODO: give a choice to use translation as a query
 
         note = genanki.Note(
-            model=self.model, fields=[word, translation, image_field, f'[sound:{sound_file.name}]', usage]
+            model=self.model, fields=[
+                word,
+                translation,
+                f'<img src="{image_file.name}">',
+                f'[sound:{sound_file.name}]',
+                usage,
+                transcription or '',
+                part_of_speech or '',
+                f'Plural: {plural}' if plural else ''
+            ]
         )
-        return note, [sound_file] + image_media
+        return note, [sound_file, image_file]
 
     def add_word(self, word):
         logging.info(f"Creating a card for the word '{word}'...")

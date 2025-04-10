@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 import requests
-from anki_deck_generator.utils.language_codes import get_language_codes
+from anki_deck_generator.language_codes import get_language_codes
 
 
 class UsageExampleFetcher:

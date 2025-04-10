@@ -18,8 +18,7 @@ class ImageDownloader:
                 time.sleep(1)
                 continue
         else:
-            logging.error(f"Cannot find an image for the word '{word}'")
-            return None
+            raise RuntimeError(f"Cannot find an image for the word '{word}'")
         image_file = next(self.working_dir.glob('000001.*'))
         new_name = self.working_dir / word / f'{word}{image_file.suffix}'
         image_file.rename(new_name)
