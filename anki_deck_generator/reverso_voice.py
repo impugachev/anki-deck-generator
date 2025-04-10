@@ -1,4 +1,5 @@
 import base64
+from pathlib import Path
 from urllib.parse import urlencode
 import requests
 
@@ -8,7 +9,7 @@ class ReversoVoice:
     AVAILABLE_VOICES_URL = 'https://voice.reverso.net/RestPronunciation.svc/v1/output=json/GetAvailableVoices'
 
     def __init__(self, language, working_dir):
-        self.working_dir = working_dir
+        self.working_dir = Path(working_dir)
         self.session = requests.Session()
         self.session.headers.update(
             {

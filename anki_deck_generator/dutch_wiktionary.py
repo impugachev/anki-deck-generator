@@ -1,3 +1,4 @@
+from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests
 
@@ -12,7 +13,7 @@ class NoNederlandsSectionError(Exception):
 
 class DutchWiktionaryWord:
     def __init__(self, word, working_dir):
-        self.working_dir = working_dir
+        self.working_dir = Path(working_dir)
         self.word = word
         self.session = requests.Session()
         self.session.headers.update(
@@ -53,13 +54,32 @@ class DutchWiktionaryWord:
 
     def get_image_url(self):
         """Extract the first content image URL"""
-        # The image is in a direct img tag with class mw-file-element
         for elem in self.xml_doc:
-            img = elem.find(".//img[@class='mw-file-element']")
-            if img is not None and 'src' in img.attrib:
-                src = img.get('src')
-                if src.startswith('//upload.wikimedia.org'):
-                    return "https:" + src
+            # First try images in thumbinner (images with captions)
+            for figure in elem.findall(".//div[@class='thumbinner']"):
+                img = figure.find(".//img[@class='mw-file-element']")
+                if img is not None and 'src' in img.attrib:
+                    # Ignore small icons
+                    width = int(img.get('width', '0'))
+                    if width < 50:
+                        continue
+                    src = img.get('src')
+                    if src.startswith('//upload.wikimedia.org'):
+                        return "https:" + src
+
+            # Then try regular content images
+            for img in elem.findall(".//img[@class='mw-file-element']"):
+                if 'src' in img.attrib:
+                    # Ignore small icons and system images
+                    width = int(img.get('width', '0'))
+                    if width < 50:
+                        continue
+                    src = img.get('src')
+                    if (
+                        src.startswith('//upload.wikimedia.org') and
+                        not src.endswith(('Icon.svg.png', 'Symbol.svg.png'))
+                    ):
+                        return "https:" + src
         return None
 
     def try_get_transcription(self):
