@@ -55,7 +55,7 @@ class UsageExampleFetcher:
         for i in range(2):
             if i >= len(usages):
                 break
-            result.append(f'<b>{usages[i]['text']}</b>')
+            result.append(f"<b>{usages[i]['text']}</b>")
             result.append(self._get_usage_translation(usages[i]))
 
         return '<br>'.join(result)

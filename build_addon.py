@@ -16,8 +16,7 @@ def install_dependencies(requirements_file, target_dir):
     subprocess.check_call([
         'pip', 'install',
         '-r', str(requirements_file),
-        '--target', str(target_dir),
-        '--no-deps'  # Don't install dependencies of dependencies to keep size minimal
+        '--target', str(target_dir)
     ])
 
 
