@@ -25,6 +25,11 @@ class AnkiDeckGenerator:
         self.image_downloader = ImageDownloader(self.working_dir)
         self.usage_fetcher = UsageExampleFetcher(self.source_language, self.target_language)
 
+        # Feature flags
+        self.use_images = True
+        self.use_audio = True
+        self.use_examples = True
+
     def _make_word_dir(self, word):
         (self.working_dir / word).mkdir(parents=True, exist_ok=True)
 
@@ -75,7 +80,7 @@ class AnkiDeckGenerator:
         self._make_word_dir(word)
 
         translation = self.translator.translate(word)
-        usage = self.usage_fetcher.fetch_usage(word)
+        usage = self.usage_fetcher.fetch_usage(word) if self.use_examples else ''
 
         sound_file = None
         image_file = None
@@ -89,29 +94,38 @@ class AnkiDeckGenerator:
             # the quality is so bad, so better always use Reverso
             # sound_file = wiktionary.try_download_sound()
             article = wiktionary.try_get_article()
-            image_file = wiktionary.try_download_image()
+            if self.use_images:
+                image_file = wiktionary.try_download_image()
             transcription = wiktionary.try_get_transcription()
             part_of_speech = wiktionary.try_get_part_of_speech()
             plural = wiktionary.try_get_plural_form()
 
-        if sound_file is None:
-            sound_file = self.reverso_voice.download_sound(word)
-        if image_file is None:
-            image_file = self.image_downloader.download_image(word)  # TODO: give a choice to use translation as a query
+        if self.use_audio:
+            if sound_file is None:
+                sound_file = self.reverso_voice.download_sound(word)
+        
+        if self.use_images:
+            if image_file is None:
+                image_file = self.image_downloader.download_image(word)
 
         note = genanki.Note(
             model=self.model, fields=[
                 f'{article} {word}' if article else word,
                 translation,
-                f'<img src="{image_file.name}">',
-                f'[sound:{sound_file.name}]',
+                f'<img src="{image_file.name}">' if image_file else '',
+                f'[sound:{sound_file.name}]' if sound_file else '',
                 usage,
                 transcription or '',
                 part_of_speech or '',
                 f'Plural: {plural}' if plural else ''
             ]
         )
-        return note, [sound_file, image_file]
+        media_files = []
+        if sound_file:
+            media_files.append(sound_file)
+        if image_file:
+            media_files.append(image_file)
+        return note, media_files
 
     def add_word(self, word):
         logging.info(f"Creating a card for the word '{word}'...")
