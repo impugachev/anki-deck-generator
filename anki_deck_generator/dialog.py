@@ -5,7 +5,8 @@ from aqt.qt import (
 )
 from aqt.utils import showInfo
 from anki.utils import int_time
-from anki.collection import ImportAnkiPackageRequest
+from anki.collection import ImportAnkiPackageRequest, ImportAnkiPackageOptions
+from anki.import_export_pb2 import ImportAnkiPackageUpdateCondition
 from anki_deck_generator.language_codes import LANGUAGES
 from anki_deck_generator.deck_generator import AnkiDeckGenerator
 import tempfile
@@ -123,9 +124,14 @@ class DeckGeneratorDialog(QDialog):
                 # Import into Anki
                 self.mw.col.import_anki_package(
                     ImportAnkiPackageRequest(
-                        package_path=temp_deck
+                        package_path=temp_deck,
+                        options=ImportAnkiPackageOptions(
+                            update_notes=ImportAnkiPackageUpdateCondition.IMPORT_ANKI_PACKAGE_UPDATE_CONDITION_IF_NEWER,
+                            update_notetypes=ImportAnkiPackageUpdateCondition.IMPORT_ANKI_PACKAGE_UPDATE_CONDITION_IF_NEWER,
+                        )
                     )
                 )
+                self.mw.deckBrowser.refresh()
                 showInfo("Deck generated and imported successfully!")
                 self.accept()
                 
