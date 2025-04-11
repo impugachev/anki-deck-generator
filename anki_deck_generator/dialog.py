@@ -1,10 +1,10 @@
+from aqt import mw
 from aqt.qt import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QComboBox, QTextEdit, QLineEdit, QCheckBox
 )
 from aqt.utils import showInfo
-from aqt.mw import addonManager
-from anki.lang import _
+from anki.utils import int_time
 from .language_codes import LANGUAGES
 from .deck_generator import AnkiDeckGenerator
 import tempfile
@@ -13,22 +13,43 @@ import os
 
 class DeckGeneratorDialog(QDialog):
     def __init__(self, mw):
-        super().__init__(mw)
+        super().__init__(parent=mw)
         self.mw = mw
-        self.config = self.load_config()
+        self.config = self._load_config()
         self.setup_ui()
 
-    def load_config(self):
-        return addonManager.getConfig(__name__)
+    def _load_config(self):
+        # Get addon dir name/path
+        addon_dir = os.path.dirname(os.path.dirname(__file__))
+        # Default config
+        config = {
+            'default_source_language': 'English',
+            'default_target_language': 'Russian',
+            'default_deck_name': 'Generated Language Deck',
+            'use_images': True,
+            'use_audio': True,
+            'use_examples': True
+        }
+        # Try to load from config.json
+        config_path = os.path.join(addon_dir, "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    import json
+                    loaded_config = json.load(f)
+                    config.update(loaded_config)
+            except Exception as e:
+                showInfo(f"Error loading config: {str(e)}")
+        return config
 
     def setup_ui(self):
-        self.setWindowTitle(_("Language Deck Generator"))
+        self.setWindowTitle("Language Deck Generator")
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         # Source Language
         source_layout = QHBoxLayout()
-        source_label = QLabel(_("Source Language:"))
+        source_label = QLabel("Source Language:")
         self.source_combo = QComboBox()
         self.source_combo.addItems(sorted(LANGUAGES.keys()))
         default_source = self.config.get('default_source_language', 'English')
@@ -39,7 +60,7 @@ class DeckGeneratorDialog(QDialog):
 
         # Target Language
         target_layout = QHBoxLayout()
-        target_label = QLabel(_("Target Language:"))
+        target_label = QLabel("Target Language:")
         self.target_combo = QComboBox()
         self.target_combo.addItems(sorted(LANGUAGES.keys()))
         default_target = self.config.get('default_target_language', 'Russian')
@@ -50,7 +71,7 @@ class DeckGeneratorDialog(QDialog):
 
         # Deck Name
         deck_layout = QHBoxLayout()
-        deck_label = QLabel(_("Deck Name:"))
+        deck_label = QLabel("Deck Name:")
         self.deck_name = QLineEdit()
         default_deck = self.config.get('default_deck_name', 'Generated Language Deck')
         self.deck_name.setText(default_deck)
@@ -60,9 +81,9 @@ class DeckGeneratorDialog(QDialog):
 
         # Options
         options_layout = QVBoxLayout()
-        self.use_images = QCheckBox(_("Include Images"))
-        self.use_audio = QCheckBox(_("Include Audio"))
-        self.use_examples = QCheckBox(_("Include Usage Examples"))
+        self.use_images = QCheckBox("Include Images")
+        self.use_audio = QCheckBox("Include Audio")
+        self.use_examples = QCheckBox("Include Usage Examples")
         
         self.use_images.setChecked(self.config.get('use_images', True))
         self.use_audio.setChecked(self.config.get('use_audio', True))
@@ -74,16 +95,16 @@ class DeckGeneratorDialog(QDialog):
         layout.addLayout(options_layout)
 
         # Words Input
-        words_label = QLabel(_("Enter words (one per line):"))
+        words_label = QLabel("Enter words (one per line):")
         layout.addWidget(words_label)
         self.words_text = QTextEdit()
         layout.addWidget(self.words_text)
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        cancel_btn = QPushButton(_("Cancel"))
+        cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.reject)
-        generate_btn = QPushButton(_("Generate Deck"))
+        generate_btn = QPushButton("Generate Deck")
         generate_btn.clicked.connect(self.generate_deck)
         generate_btn.setDefault(True)
         buttons_layout.addWidget(cancel_btn)
@@ -97,7 +118,7 @@ class DeckGeneratorDialog(QDialog):
         words = self.words_text.toPlainText().split('\n')
 
         if not words or not ''.join(words).strip():
-            showInfo(_("Please enter at least one word"))
+            showInfo("Please enter at least one word")
             return
 
         # Create temporary directory for media files
@@ -118,13 +139,13 @@ class DeckGeneratorDialog(QDialog):
                 generator.add_words(words)
                 
                 # Save to a temporary file
-                temp_deck = os.path.join(temp_dir, "temp_deck.apkg")
+                temp_deck = os.path.join(temp_dir, f"temp_deck_{int_time()}.apkg")
                 generator.save_deck(temp_deck)
                 
                 # Import into Anki
-                self.mw.handleImport(temp_deck)
-                showInfo(_("Deck generated and imported successfully!"))
+                self.mw.import_file(temp_deck)
+                showInfo("Deck generated and imported successfully!")
                 self.accept()
                 
             except Exception as e:
-                showInfo(_("Error generating deck: %s") % str(e))
+                showInfo(f"Error generating deck: {str(e)}")
