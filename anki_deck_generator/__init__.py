@@ -7,7 +7,7 @@ __all__ = ['AnkiDeckGenerator']
 
 def show_deck_generator():
     # Import here to avoid circular imports
-    from .dialog import DeckGeneratorDialog
+    from anki_deck_generator.dialog import DeckGeneratorDialog
     dialog = DeckGeneratorDialog(mw)
     dialog.exec()
 

@@ -5,8 +5,8 @@ from aqt.qt import (
 )
 from aqt.utils import showInfo
 from anki.utils import int_time
-from .language_codes import LANGUAGES
-from .deck_generator import AnkiDeckGenerator
+from anki_deck_generator.language_codes import LANGUAGES
+from anki_deck_generator.deck_generator import AnkiDeckGenerator
 import tempfile
 import os
 
