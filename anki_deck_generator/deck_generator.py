@@ -25,11 +25,6 @@ class AnkiDeckGenerator:
         self.image_downloader = ImageDownloader(self.working_dir)
         self.usage_fetcher = UsageExampleFetcher(self.source_language, self.target_language)
 
-        # Feature flags
-        self.use_images = True
-        self.use_audio = True
-        self.use_examples = True
-
     def _make_word_dir(self, word):
         (self.working_dir / word).mkdir(parents=True, exist_ok=True)
 
@@ -80,7 +75,7 @@ class AnkiDeckGenerator:
         self._make_word_dir(word)
 
         translation = self.translator.translate(word)
-        usage = self.usage_fetcher.fetch_usage(word) if self.use_examples else ''
+        usage = self.usage_fetcher.fetch_usage(word)
 
         sound_file = None
         image_file = None
@@ -94,19 +89,16 @@ class AnkiDeckGenerator:
             # the quality is so bad, so better always use Reverso
             # sound_file = wiktionary.try_download_sound()
             article = wiktionary.try_get_article()
-            if self.use_images:
-                image_file = wiktionary.try_download_image()
+            image_file = wiktionary.try_download_image()
             transcription = wiktionary.try_get_transcription()
             part_of_speech = wiktionary.try_get_part_of_speech()
             plural = wiktionary.try_get_plural_form()
 
-        if self.use_audio:
-            if sound_file is None:
-                sound_file = self.reverso_voice.download_sound(word)
+        if sound_file is None:
+            sound_file = self.reverso_voice.download_sound(word)
         
-        if self.use_images:
-            if image_file is None:
-                image_file = self.image_downloader.download_image(word)
+        if image_file is None:
+            image_file = self.image_downloader.download_image(word)
 
         note = genanki.Note(
             model=self.model, fields=[

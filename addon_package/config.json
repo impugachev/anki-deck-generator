@@ -1,8 +1,5 @@
 {
-    "default_source_language": "English",
+    "default_source_language": "Dutch",
     "default_target_language": "Russian",
-    "default_deck_name": "Generated Language Deck",
-    "use_images": true,
-    "use_audio": true,
-    "use_examples": true
+    "default_deck_name": "Generated Language Deck"
 }
