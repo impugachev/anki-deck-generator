@@ -1,7 +1,7 @@
 from aqt import mw
 from aqt.qt import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QComboBox, QTextEdit, QLineEdit
+    QComboBox, QTextEdit, QLineEdit, QProgressBar
 )
 from aqt.utils import showInfo
 from anki.utils import int_time
@@ -84,26 +84,42 @@ class DeckGeneratorDialog(QDialog):
         self.words_text = QTextEdit()
         layout.addWidget(self.words_text)
 
+        # Progress Bar (initially hidden)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.hide()
+        layout.addWidget(self.progress_bar)
+
         # Buttons
         buttons_layout = QHBoxLayout()
         cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.reject)
-        generate_btn = QPushButton("Generate Deck")
-        generate_btn.clicked.connect(self.generate_deck)
-        generate_btn.setDefault(True)
+        self.generate_btn = QPushButton("Generate Deck")
+        self.generate_btn.clicked.connect(self.generate_deck)
+        self.generate_btn.setDefault(True)
         buttons_layout.addWidget(cancel_btn)
-        buttons_layout.addWidget(generate_btn)
+        buttons_layout.addWidget(self.generate_btn)
         layout.addLayout(buttons_layout)
+
+    def update_progress(self, current, total):
+        percentage = int((current / total) * 100)
+        self.progress_bar.setValue(percentage)
+        self.progress_bar.setFormat(f"Processing word {current} of {total} ({percentage}%)")
 
     def generate_deck(self):
         source_language = self.source_combo.currentText()
         target_language = self.target_combo.currentText()
         deck_name = self.deck_name.text()
-        words = self.words_text.toPlainText().split('\n')
+        words = [w for w in self.words_text.toPlainText().split('\n') if w.strip()]
 
-        if not words or not ''.join(words).strip():
+        if not words:
             showInfo("Please enter at least one word")
             return
+
+        # Show progress bar and disable generate button
+        self.progress_bar.show()
+        self.generate_btn.setEnabled(False)
 
         # Create temporary directory for media files
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -112,7 +128,8 @@ class DeckGeneratorDialog(QDialog):
                     deck_name=deck_name,
                     source_language=source_language,
                     target_language=target_language,
-                    working_dir=temp_dir
+                    working_dir=temp_dir,
+                    progress_callback=self.update_progress
                 )
 
                 generator.add_words(words)
@@ -137,3 +154,7 @@ class DeckGeneratorDialog(QDialog):
                 
             except Exception as e:
                 showInfo(f"Error generating deck: {str(e)}")
+            finally:
+                # Re-enable generate button and hide progress bar
+                self.generate_btn.setEnabled(True)
+                self.progress_bar.hide()

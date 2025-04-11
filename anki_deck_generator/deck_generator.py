@@ -10,11 +10,12 @@ from anki_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
 
 
 class AnkiDeckGenerator:
-    def __init__(self, deck_name, source_language, target_language, working_dir):
+    def __init__(self, deck_name, source_language, target_language, working_dir, progress_callback=None):
         self.deck_name = deck_name
         self.source_language = source_language
         self.target_language = target_language
         self.working_dir = Path(working_dir)
+        self.progress_callback = progress_callback
         self.deck = genanki.Deck(random.randint(1, 2**31 - 1), deck_name)
         self.media = []
         self.model = self._generate_model()
@@ -130,7 +131,8 @@ class AnkiDeckGenerator:
             logging.error(f"Error creating a card for the word '{word}': {e}")
 
     def add_words(self, words, skip_empty=True):
-        for word in words:
+        total_words = len(words)
+        for i, word in enumerate(words):
             word = word.strip()
             if word == '':
                 if skip_empty:
@@ -138,6 +140,8 @@ class AnkiDeckGenerator:
                 else:
                     raise ValueError('Empty word found in the list')
             self.add_word(word)
+            if self.progress_callback:
+                self.progress_callback(i + 1, total_words)
 
     def save_deck(self, output_path):
         package = genanki.Package(self.deck)
