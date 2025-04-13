@@ -97,7 +97,7 @@ class AnkiDeckGenerator:
 
         if sound_file is None:
             sound_file = self.reverso_voice.download_sound(word)
-        
+
         if image_file is None:
             image_file = self.image_downloader.download_image(word)
 

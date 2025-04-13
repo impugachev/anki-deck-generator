@@ -7,18 +7,18 @@ from pathlib import Path
 
 def create_addon_package(output_path=None, output_dir=None):
     """Create an Anki addon package
-    
+
     Args:
         output_path: Path to output .ankiaddon file
         output_dir: Path to output directory for direct addon installation
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
-        
+
         # 1. Copy addon_package contents to temp directory
         addon_dir = temp_dir / 'addon'
         shutil.copytree('addon_package', addon_dir, dirs_exist_ok=True)
-        
+
         # 2. Copy anki_deck_generator into addon_package
         shutil.copytree(
             'anki_deck_generator',
@@ -26,7 +26,7 @@ def create_addon_package(output_path=None, output_dir=None):
             ignore=lambda src, _: {'__init__.py'} if src == 'anki_deck_generator' else set(),
             dirs_exist_ok=True
         )
-        
+
         # 3. Install dependencies
         deps_dir = addon_dir / 'dependencies'
         deps_dir.mkdir(exist_ok=True)
@@ -37,7 +37,7 @@ def create_addon_package(output_path=None, output_dir=None):
             '-r', str(addon_dir / 'requirements.txt'),
             '--target', str(deps_dir)
         ])
-        
+
         if output_dir:
             output_dir = Path(output_dir)
             if output_dir.exists():
@@ -49,10 +49,10 @@ def create_addon_package(output_path=None, output_dir=None):
         output_path = Path(output_path)
         if output_path.exists():
             output_path.unlink()
-        
+
         # Create the zip file from the addon directory
         shutil.make_archive(str(output_path.with_suffix('')), 'zip', addon_dir)
-        
+
         # Rename .zip to .ankiaddon if needed
         if output_path.suffix == '.ankiaddon':
             zip_path = output_path.with_suffix('.zip')
@@ -61,7 +61,7 @@ def create_addon_package(output_path=None, output_dir=None):
 
 def main():
     parser = argparse.ArgumentParser(description='Build Anki addon package')
-    
+
     # Create mutually exclusive group for output options
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument(
@@ -73,14 +73,14 @@ def main():
         '-d', '--output-dir',
         help='Output directory for direct addon installation'
     )
-    
+
     args = parser.parse_args()
-    
+
     create_addon_package(
         output_path=args.output if not args.output_dir else None,
         output_dir=args.output_dir
     )
-    
+
     if args.output_dir:
         print(f'Addon files created in directory: {args.output_dir}')
     else:
