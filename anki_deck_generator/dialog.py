@@ -9,9 +9,10 @@ from anki.collection import ImportAnkiPackageRequest, ImportAnkiPackageOptions
 from anki.import_export_pb2 import ImportAnkiPackageUpdateCondition
 from anki_deck_generator.language_codes import LANGUAGES
 from anki_deck_generator.deck_generator import AnkiDeckGenerator
+
 import tempfile
-import os
 import json
+from pathlib import Path
 
 
 class DeckGeneratorDialog(QDialog):
@@ -21,22 +22,32 @@ class DeckGeneratorDialog(QDialog):
         self.config = self._load_config()
         self.setup_ui()
 
+    @staticmethod
+    def _get_config_path():
+        return Path(__file__).parent.parent / 'config.json'
+
     def _load_config(self):
-        # Get addon dir name/path
-        addon_dir = os.path.dirname(os.path.dirname(__file__))
-        config_path = os.path.join(addon_dir, "config.json")
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with self._get_config_path().open('r', encoding='utf-8') as f:
             config = json.load(f)
         return config
 
+    def _save_config(self, source_language, target_language, deck_name):
+        config = {
+            'default_source_language': source_language,
+            'default_target_language': target_language,
+            'default_deck_name': deck_name
+        }
+        with self._get_config_path().open('w', encoding='utf-8') as f:
+            json.dump(config, f, indent=4)
+
     def setup_ui(self):
-        self.setWindowTitle("Language Deck Generator")
+        self.setWindowTitle('Language Deck Generator')
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         # Source Language
         source_layout = QHBoxLayout()
-        source_label = QLabel("Source Language:")
+        source_label = QLabel('Source Language:')
         self.source_combo = QComboBox()
         self.source_combo.addItems(sorted(LANGUAGES.keys()))
         default_source = self.config.get('default_source_language')
@@ -47,7 +58,7 @@ class DeckGeneratorDialog(QDialog):
 
         # Target Language
         target_layout = QHBoxLayout()
-        target_label = QLabel("Target Language:")
+        target_label = QLabel('Target Language:')
         self.target_combo = QComboBox()
         self.target_combo.addItems(sorted(LANGUAGES.keys()))
         default_target = self.config.get('default_target_language')
@@ -58,7 +69,7 @@ class DeckGeneratorDialog(QDialog):
 
         # Deck Name
         deck_layout = QHBoxLayout()
-        deck_label = QLabel("Deck Name:")
+        deck_label = QLabel('Deck Name:')
         self.deck_name = QLineEdit()
         default_deck = self.config.get('default_deck_name')
         self.deck_name.setText(default_deck)
@@ -67,7 +78,7 @@ class DeckGeneratorDialog(QDialog):
         layout.addLayout(deck_layout)
 
         # Words Input
-        words_label = QLabel("Enter words (one per line):")
+        words_label = QLabel('Enter words (one per line):')
         layout.addWidget(words_label)
         self.words_text = QTextEdit()
         layout.addWidget(self.words_text)
@@ -81,9 +92,9 @@ class DeckGeneratorDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton('Cancel')
         cancel_btn.clicked.connect(self.reject)
-        self.generate_btn = QPushButton("Generate Deck")
+        self.generate_btn = QPushButton('Generate Deck')
         self.generate_btn.clicked.connect(self.generate_deck)
         self.generate_btn.setDefault(True)
         buttons_layout.addWidget(cancel_btn)
@@ -93,16 +104,17 @@ class DeckGeneratorDialog(QDialog):
     def update_progress(self, current, total):
         percentage = int((current / total) * 100)
         self.progress_bar.setValue(percentage)
-        self.progress_bar.setFormat(f"Processing word {current} of {total} ({percentage}%)")
+        self.progress_bar.setFormat(f'Processing word {current} of {total} ({percentage}%)')
 
     def generate_deck(self):
         source_language = self.source_combo.currentText()
         target_language = self.target_combo.currentText()
         deck_name = self.deck_name.text()
+        self._save_config(source_language, target_language, deck_name)
         words = [w for w in self.words_text.toPlainText().split('\n') if w.strip()]
 
         if not words:
-            showInfo("Please enter at least one word")
+            showInfo('Please enter at least one word')
             return
 
         # Show progress bar and disable generate button
@@ -121,27 +133,29 @@ class DeckGeneratorDialog(QDialog):
                 )
 
                 generator.add_words(words)
-                
+
                 # Save to a temporary file
-                temp_deck = os.path.join(temp_dir, f"temp_deck_{int_time()}.apkg")
+                temp_deck = Path(temp_dir) / f'temp_deck_{int_time()}.apkg'
                 generator.save_deck(temp_deck)
-                
+
                 # Import into Anki
+                UPDATE_CONDITION = ImportAnkiPackageUpdateCondition.IMPORT_ANKI_PACKAGE_UPDATE_CONDITION_IF_NEWER
                 self.main_window.col.import_anki_package(
                     ImportAnkiPackageRequest(
-                        package_path=temp_deck,
+                        package_path=str(temp_deck),
                         options=ImportAnkiPackageOptions(
-                            update_notes=ImportAnkiPackageUpdateCondition.IMPORT_ANKI_PACKAGE_UPDATE_CONDITION_IF_NEWER,
-                            update_notetypes=ImportAnkiPackageUpdateCondition.IMPORT_ANKI_PACKAGE_UPDATE_CONDITION_IF_NEWER,
+                            update_notes=UPDATE_CONDITION,
+                            update_notetypes=UPDATE_CONDITION,
                         )
                     )
                 )
                 self.main_window.deckBrowser.refresh()
-                showInfo("Deck generated and imported successfully!")
+                showInfo('Deck generated and imported successfully!')
                 self.accept()
-                
+
             except Exception as e:
-                showInfo(f"Error generating deck: {str(e)}")
+                showInfo(f'Error generating deck: {str(e)}')
+                raise
             finally:
                 # Re-enable generate button and hide progress bar
                 self.generate_btn.setEnabled(True)
