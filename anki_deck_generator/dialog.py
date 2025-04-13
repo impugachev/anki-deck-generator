@@ -15,9 +15,9 @@ import json
 
 
 class DeckGeneratorDialog(QDialog):
-    def __init__(self, mw):
-        super().__init__(parent=mw)
-        self.mw = mw
+    def __init__(self, main_window):
+        super().__init__(parent=main_window)
+        self.main_window = main_window
         self.config = self._load_config()
         self.setup_ui()
 
@@ -127,7 +127,7 @@ class DeckGeneratorDialog(QDialog):
                 generator.save_deck(temp_deck)
                 
                 # Import into Anki
-                self.mw.col.import_anki_package(
+                self.main_window.col.import_anki_package(
                     ImportAnkiPackageRequest(
                         package_path=temp_deck,
                         options=ImportAnkiPackageOptions(
@@ -136,7 +136,7 @@ class DeckGeneratorDialog(QDialog):
                         )
                     )
                 )
-                self.mw.deckBrowser.refresh()
+                self.main_window.deckBrowser.refresh()
                 showInfo("Deck generated and imported successfully!")
                 self.accept()
                 
