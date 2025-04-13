@@ -5,6 +5,21 @@ import tempfile
 from pathlib import Path
 
 
+PLATFORM_INDEPENDENT_PACKAGES = [
+    'genanki==0.13.1',
+    'icrawler==0.6.10',
+    'cached_property==2.0.1',
+    'chevron==0.14.0',
+    'six==1.17.0'
+]
+
+BINARY_PACKAGES = [
+    'pillow==9.0.1',
+    'lxml==4.6.4',
+    'pyyaml==6.0.2'
+]
+
+
 def create_addon_package(output_path=None, output_dir=None):
     """Create an Anki addon package
 
@@ -32,9 +47,9 @@ def create_addon_package(output_path=None, output_dir=None):
         deps_dir.mkdir(exist_ok=True)
         subprocess.check_call([
             'pip', 'install',
-            # '--platform', 'win_amd64',  # TODO: fix bin packages for different platforms
-            # '--python-version', '3.9',
-            '-r', str(addon_dir / 'requirements.txt'),
+            *PLATFORM_INDEPENDENT_PACKAGES,
+            *BINARY_PACKAGES,  # TODO: Use platform-specific packages
+            '--no-deps',
             '--target', str(deps_dir)
         ])
 
