@@ -32,6 +32,8 @@ def create_addon_package(output_path=None, output_dir=None):
         deps_dir.mkdir(exist_ok=True)
         subprocess.check_call([
             'pip', 'install',
+            # '--platform', 'win_amd64',  # TODO: fix bin packages for different platforms
+            # '--python-version', '3.9',
             '-r', str(addon_dir / 'requirements.txt'),
             '--target', str(deps_dir)
         ])
