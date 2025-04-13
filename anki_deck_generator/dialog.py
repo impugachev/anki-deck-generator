@@ -11,6 +11,7 @@ from anki_deck_generator.language_codes import LANGUAGES
 from anki_deck_generator.deck_generator import AnkiDeckGenerator
 import tempfile
 import os
+import json
 
 
 class DeckGeneratorDialog(QDialog):
@@ -23,22 +24,9 @@ class DeckGeneratorDialog(QDialog):
     def _load_config(self):
         # Get addon dir name/path
         addon_dir = os.path.dirname(os.path.dirname(__file__))
-        # Default config
-        config = {
-            'default_source_language': 'Dutch',
-            'default_target_language': 'Russian',
-            'default_deck_name': 'Generated Language Deck'
-        }
-        # Try to load from config.json
         config_path = os.path.join(addon_dir, "config.json")
-        if os.path.exists(config_path):
-            try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    import json
-                    loaded_config = json.load(f)
-                    config.update(loaded_config)
-            except Exception as e:
-                showInfo(f"Error loading config: {str(e)}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
         return config
 
     def setup_ui(self):
@@ -51,7 +39,7 @@ class DeckGeneratorDialog(QDialog):
         source_label = QLabel("Source Language:")
         self.source_combo = QComboBox()
         self.source_combo.addItems(sorted(LANGUAGES.keys()))
-        default_source = self.config.get('default_source_language', 'Dutch')
+        default_source = self.config.get('default_source_language')
         self.source_combo.setCurrentText(default_source)
         source_layout.addWidget(source_label)
         source_layout.addWidget(self.source_combo)
@@ -62,7 +50,7 @@ class DeckGeneratorDialog(QDialog):
         target_label = QLabel("Target Language:")
         self.target_combo = QComboBox()
         self.target_combo.addItems(sorted(LANGUAGES.keys()))
-        default_target = self.config.get('default_target_language', 'Russian')
+        default_target = self.config.get('default_target_language')
         self.target_combo.setCurrentText(default_target)
         target_layout.addWidget(target_label)
         target_layout.addWidget(self.target_combo)
@@ -72,7 +60,7 @@ class DeckGeneratorDialog(QDialog):
         deck_layout = QHBoxLayout()
         deck_label = QLabel("Deck Name:")
         self.deck_name = QLineEdit()
-        default_deck = self.config.get('default_deck_name', 'Generated Language Deck')
+        default_deck = self.config.get('default_deck_name')
         self.deck_name.setText(default_deck)
         deck_layout.addWidget(deck_label)
         deck_layout.addWidget(self.deck_name)
