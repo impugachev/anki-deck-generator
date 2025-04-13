@@ -1,23 +1,8 @@
 import argparse
-import os
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-
-
-def copy_directory(src, dst):
-    """Copy directory recursively, creating destination if it doesn't exist"""
-    shutil.copytree(src, dst, dirs_exist_ok=True)
-
-
-def install_dependencies(requirements_file, target_dir):
-    """Install pip dependencies to a specific directory"""
-    subprocess.check_call([
-        'pip', 'install',
-        '-r', str(requirements_file),
-        '--target', str(target_dir)
-    ])
 
 
 def create_addon_package(output_path=None, output_dir=None):
@@ -32,22 +17,30 @@ def create_addon_package(output_path=None, output_dir=None):
         
         # 1. Copy addon_package contents to temp directory
         addon_dir = temp_dir / 'addon'
-        copy_directory('addon_package', addon_dir)
+        shutil.copytree('addon_package', addon_dir, dirs_exist_ok=True)
         
         # 2. Copy anki_deck_generator into addon_package
-        copy_directory('anki_deck_generator', addon_dir / 'anki_deck_generator')
+        shutil.copytree(
+            'anki_deck_generator',
+            addon_dir / 'anki_deck_generator',
+            ignore=lambda src, _: {'__init__.py'} if src == 'anki_deck_generator' else set(),
+            dirs_exist_ok=True
+        )
         
         # 3. Install dependencies
         deps_dir = addon_dir / 'dependencies'
         deps_dir.mkdir(exist_ok=True)
-        install_dependencies(addon_dir / 'requirements.txt', deps_dir)
+        subprocess.check_call([
+            'pip', 'install',
+            '-r', str(addon_dir / 'requirements.txt'),
+            '--target', str(deps_dir)
+        ])
         
         if output_dir:
-            # Copy directly to Anki addons folder
             output_dir = Path(output_dir)
             if output_dir.exists():
                 shutil.rmtree(output_dir)
-            copy_directory(addon_dir, output_dir)
+            shutil.copytree(addon_dir, output_dir, dirs_exist_ok=True)
             return
 
         # 4. Create zip file
