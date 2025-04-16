@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-from anki_deck_generator.language_codes import get_language_codes
+from anki_language_deck_generator.language_codes import get_language_codes
 
 
 class Translator:

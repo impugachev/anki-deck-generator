@@ -1,6 +1,8 @@
-# Anki Deck Generator
+# Anki Language Deck Generator
 
 A tool to automatically generate Anki decks for language learning, with translations, images, and pronunciations.
+
+> **Note:** The Anki addon currently supports only Windows platforms. The standalone tool can be used on any platform.
 
 ## Features
 
@@ -59,7 +61,7 @@ pip install .
 
 ### Standalone tool:
 ```bash
-python -m anki_deck_generator --words-file path/to/words.txt \
+python -m anki_language_deck_generator --words-file path/to/words.txt \
                             --source-language Russian \
                             --target-language Dutch \
                             --deck-name "My Language Deck" \

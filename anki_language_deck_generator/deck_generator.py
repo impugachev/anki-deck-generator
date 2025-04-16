@@ -2,11 +2,11 @@ import random
 import logging
 from pathlib import Path
 import genanki
-import anki_deck_generator.translators as translators
-from anki_deck_generator.reverso_voice import ReversoVoice
-from anki_deck_generator.dutch_wiktionary import DutchWiktionaryWord
-from anki_deck_generator.google_image_downloader import ImageDownloader
-from anki_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
+import anki_language_deck_generator.translators as translators
+from anki_language_deck_generator.reverso_voice import ReversoVoice
+from anki_language_deck_generator.dutch_wiktionary import DutchWiktionaryWord
+from anki_language_deck_generator.google_image_downloader import ImageDownloader
+from anki_language_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
 
 
 class AnkiDeckGenerator:

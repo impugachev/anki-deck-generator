@@ -3,7 +3,7 @@ from aqt.qt import QAction, qconnect
 
 def show_deck_generator():
     # Import here to avoid circular imports
-    from anki_deck_generator.dialog import DeckGeneratorDialog
+    from anki_language_deck_generator.dialog import DeckGeneratorDialog
     dialog = DeckGeneratorDialog(mw)
     dialog.exec()
 

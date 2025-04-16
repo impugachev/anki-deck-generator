@@ -39,11 +39,11 @@ def create_addon_package(output_path=None, output_dir=None):
         addon_dir = temp_dir / 'addon'
         shutil.copytree('addon_package', addon_dir, dirs_exist_ok=True)
 
-        # 2. Copy anki_deck_generator into addon_package
+        # 2. Copy anki_language_deck_generator into addon_package
         shutil.copytree(
-            'anki_deck_generator',
-            addon_dir / 'anki_deck_generator',
-            ignore=lambda src, _: {'__init__.py'} if src == 'anki_deck_generator' else set(),
+            'anki_language_deck_generator',
+            addon_dir / 'anki_language_deck_generator',
+            ignore=lambda src, _: {'__init__.py'} if src == 'anki_language_deck_generator' else set(),
             dirs_exist_ok=True
         )
 
@@ -99,7 +99,7 @@ def main():
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument(
         '-o', '--output',
-        default='anki_deck_generator.ankiaddon',
+        default='anki_language_deck_generator.ankiaddon',
         help='Output path for the addon package'
     )
     output_group.add_argument(

@@ -28,4 +28,4 @@ _setup_path()
 from bs4.builder import register_treebuilders_from, _lxml
 register_treebuilders_from(_lxml)
 
-from . import anki_deck_generator
+from . import anki_language_deck_generator

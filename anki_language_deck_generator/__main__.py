@@ -1,12 +1,12 @@
 import argparse
 import logging
 import tempfile
-from anki_deck_generator.deck_generator import AnkiDeckGenerator
+from anki_language_deck_generator.deck_generator import AnkiDeckGenerator
 
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='anki-deck-generator',
+        prog='anki-language-deck-generator',
         description='Generate simple Anki deck from list of words',
     )
     parser.add_argument('--deck-name', default='Generated deck', help='Name of the Anki deck')

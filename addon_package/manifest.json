@@ -1,10 +1,7 @@
 {
     "name": "Language Deck Generator",
-    "package": "anki_deck_generator",
-    "homepage": "https://github.com/impugachev/anki-deck-generator",
-    "mod": 20250411,
-    "min_point_version": 0,
-    "max_point_version": 49,
-    "conflicts": [],
-    "human_version": "0.1.0"
+    "package": "anki_language_deck_generator",
+    "homepage": "https://github.com/impugachev/anki-language-deck-generator",
+    "mod": 20250416,
+    "human_version": "0.5.0"
 }

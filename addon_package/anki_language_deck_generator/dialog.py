@@ -7,8 +7,8 @@ from aqt.utils import showInfo
 from anki.utils import int_time
 from anki.collection import ImportAnkiPackageRequest, ImportAnkiPackageOptions
 from anki.import_export_pb2 import ImportAnkiPackageUpdateCondition
-from anki_deck_generator.language_codes import LANGUAGES
-from anki_deck_generator.deck_generator import AnkiDeckGenerator
+from anki_language_deck_generator.language_codes import LANGUAGES
+from anki_language_deck_generator.deck_generator import AnkiDeckGenerator
 
 import tempfile
 import json
