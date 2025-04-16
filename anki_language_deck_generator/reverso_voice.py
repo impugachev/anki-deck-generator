@@ -40,6 +40,8 @@ class ReversoVoice:
         return f'{self.VOICE_STREAM_URL}/{urlencode(voice_name_param)}?{urlencode(query_params)}'
 
     def _get_voice_for_language(self, language):
+        if language in self.LANGUAGE_ALIASES:
+            language = self.LANGUAGE_ALIASES[language]
         response = self.session.get(self.AVAILABLE_VOICES_URL)
         if response.status_code != 200:
             raise Exception(f'Failed to get available voices: {response.status_code}')
