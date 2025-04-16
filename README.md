@@ -4,12 +4,42 @@ A tool to automatically generate Anki decks for language learning, with translat
 
 ## Features
 
-- Automatic translation using DeepL API
+- Automatic translation using Glosbe
 - Image search for visual associations
 - Audio pronunciation using Reverso Voice
 - Usage examples from Tatoeba
 - Two-way cards (source -> target language and vice versa)
 - Can be used as both a standalone tool and an Anki addon
+
+## Supported Languages
+
+The following languages are available for both source and target:
+
+- Arabic
+- English
+- Catalan
+- Czech
+- Danish
+- Dutch
+- Finnish
+- French
+- German
+- Greek
+- Hebrew
+- Italian
+- Japanese
+- Korean
+- Chinese
+- Norwegian
+- Polish
+- Portuguese
+- Romanian
+- Russian
+- Spanish
+- Swedish
+- Turkish
+
+> **Note:** For Dutch, additional information (such as article, plural, transcription, part of speech, and images) is fetched from Dutch Wiktionary for richer cards.
 
 ## Installation
 

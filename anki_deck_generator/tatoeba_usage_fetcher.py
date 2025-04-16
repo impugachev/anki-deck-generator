@@ -6,19 +6,29 @@ from anki_deck_generator.language_codes import get_language_codes
 class UsageExampleFetcher:
     TATOEBA_URL = 'https://tatoeba.org/ru/api_v0/search'
     LANGUAGES = {
+        'Arabic': 'ara',
         'English': 'eng',
-        'Russian': 'rus',
+        'Catalan': 'cat',
+        'Czech': 'ces',
+        'Danish': 'dan',
         'Dutch': 'nld',
-        'Georgian': 'kat',
-        'Spanish': 'spa',
+        'Finnish': 'fin',
         'French': 'fra',
         'German': 'deu',
+        'Greek': 'ell',
+        'Hebrew': 'heb',
         'Italian': 'ita',
         'Japanese': 'jpn',
-        'Chinese': 'cmn',
         'Korean': 'kor',
+        'Chinese': 'cmn',
+        'Norwegian': 'nno',
+        'Polish': 'pol',
         'Portuguese': 'por',
-        'Arabic': 'ara'
+        'Romanian': 'ron',
+        'Russian': 'rus',
+        'Spanish': 'spa',
+        'Swedish': 'swe',
+        'Turkish': 'tur'
     }
 
     def __init__(self, source_language, target_language):

@@ -5,8 +5,17 @@ import requests
 
 
 class ReversoVoice:
+    """
+    A class to handle voice synthesis using Reverso API.
+    This class provides methods to download sound files for given words
+    in a specified language using the Reverso API.
+    """
     VOICE_STREAM_URL = 'https://voice.reverso.net/RestPronunciation.svc/v1/output=xml/GetVoiceStream'
     AVAILABLE_VOICES_URL = 'https://voice.reverso.net/RestPronunciation.svc/v1/output=json/GetAvailableVoices'
+    LANGUAGE_ALIASES = {
+        'English': 'British',
+        'Chinese': 'Mandarin Chinese',
+    }
 
     def __init__(self, language, working_dir):
         self.working_dir = Path(working_dir)
