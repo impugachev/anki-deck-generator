@@ -12,6 +12,10 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/impugachev/anki-language-deck-generator',
     packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        'anki_language_deck_generator': ['templates/*'],
+    },
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
