@@ -19,6 +19,11 @@ BINARY_PACKAGES = [
     'pyyaml==6.0.2'
 ]
 
+PLATFORMS = [
+    'win_amd64',
+    'win32',
+]
+
 
 def create_addon_package(output_path=None, output_dir=None):
     """Create an Anki addon package
@@ -48,10 +53,23 @@ def create_addon_package(output_path=None, output_dir=None):
         subprocess.check_call([
             'pip', 'install',
             *PLATFORM_INDEPENDENT_PACKAGES,
-            *BINARY_PACKAGES,  # TODO: Use platform-specific packages
             '--no-deps',
             '--target', str(deps_dir)
         ])
+        # Download and install binary packages for each platform
+        for platform in PLATFORMS:
+            plat_dir = deps_dir / 'platform' / platform
+            plat_dir.mkdir(parents=True, exist_ok=True)
+            subprocess.check_call([
+                'pip', 'install',
+                *BINARY_PACKAGES,
+                '--only-binary=:all:',
+                '--platform', platform,
+                '--implementation=cp',
+                '--python-version', '3.9',
+                '--no-deps',
+                '--target', str(plat_dir)
+            ])
 
         if output_dir:
             output_dir = Path(output_dir)
