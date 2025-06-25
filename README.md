@@ -2,13 +2,15 @@
 
 A tool to automatically generate Anki decks for language learning, with translations, images, and pronunciations.
 
+[Anki addon can be found here](https://ankiweb.net/shared/info/290385946)
+
 > **Note:** The Anki addon currently supports only Windows platforms. The standalone tool can be used on any platform.
 
 ## Features
 
 - Automatic translation using Glosbe
 - Image search for visual associations
-- Audio pronunciation using Reverso Voice
+- Audio pronunciation using Google TTS
 - Usage examples from Tatoeba
 - Two-way cards (source -> target language and vice versa)
 - Can be used as both a standalone tool and an Anki addon
@@ -54,7 +56,7 @@ pip install .
 1. Open Anki
 2. Go to Tools -> Add-ons
 3. Click "Get Add-ons..."
-4. Enter the addon code: [To be added after publishing]
+4. Enter the addon code: 290385946
 5. Restart Anki
 
 ## Usage
