@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 import genanki
 import anki_language_deck_generator.translators as translators
-from anki_language_deck_generator.reverso_voice import ReversoVoice
+from anki_language_deck_generator.google_voice import GoogleVoice
 from anki_language_deck_generator.dutch_wiktionary import DutchWiktionaryWord
 from anki_language_deck_generator.google_image_downloader import ImageDownloader
 from anki_language_deck_generator.tatoeba_usage_fetcher import UsageExampleFetcher
@@ -22,7 +22,7 @@ class AnkiDeckGenerator:
 
         # Initialize helper classes
         self.translator = translators.glosbe.Translator(self.source_language, self.target_language)
-        self.reverso_voice = ReversoVoice(self.source_language, self.working_dir)
+        self.reverso_voice = GoogleVoice(self.source_language, self.working_dir)
         self.image_downloader = ImageDownloader(self.working_dir)
         self.usage_fetcher = UsageExampleFetcher(self.source_language, self.target_language)
 
@@ -84,16 +84,17 @@ class AnkiDeckGenerator:
         part_of_speech = None
         plural = None
         article = None
-
-        if self.source_language == 'Dutch':
-            wiktionary = DutchWiktionaryWord(word, self.working_dir)
-            # the quality is so bad, so better always use Reverso
-            # sound_file = wiktionary.try_download_sound()
-            article = wiktionary.try_get_article()
-            image_file = wiktionary.try_download_image()
-            transcription = wiktionary.try_get_transcription()
-            part_of_speech = wiktionary.try_get_part_of_speech()
-            plural = wiktionary.try_get_plural_form()
+        
+        # TODO: fix it, doesn't work now
+        # if self.source_language == 'Dutch':
+        #     wiktionary = DutchWiktionaryWord(word, self.working_dir)
+        #     # the quality is so bad, so better always use Reverso
+        #     # sound_file = wiktionary.try_download_sound()
+        #     article = wiktionary.try_get_article()
+        #     image_file = wiktionary.try_download_image()
+        #     transcription = wiktionary.try_get_transcription()
+        #     part_of_speech = wiktionary.try_get_part_of_speech()
+        #     plural = wiktionary.try_get_plural_form()
 
         if sound_file is None:
             sound_file = self.reverso_voice.download_sound(word)

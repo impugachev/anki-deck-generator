@@ -10,7 +10,8 @@ PLATFORM_INDEPENDENT_PACKAGES = [
     'icrawler==0.6.10',
     'cached_property==2.0.1',
     'chevron==0.14.0',
-    'six==1.17.0'
+    'six==1.17.0',
+    'gTTS==2.5.4',
 ]
 
 BINARY_PACKAGES = [
