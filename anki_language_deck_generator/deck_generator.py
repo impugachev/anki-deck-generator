@@ -20,6 +20,9 @@ class AnkiDeckGenerator:
         self.media = []
         self.model = self._generate_model()
 
+        # Track failed words
+        self.failed_words = []
+
         # Initialize helper classes
         self.translator = translators.glosbe.Translator(self.source_language, self.target_language)
         self.reverso_voice = GoogleVoice(self.source_language, self.working_dir)
@@ -86,15 +89,15 @@ class AnkiDeckGenerator:
         article = None
         
         # TODO: fix it, doesn't work now
-        # if self.source_language == 'Dutch':
-        #     wiktionary = DutchWiktionaryWord(word, self.working_dir)
-        #     # the quality is so bad, so better always use Reverso
-        #     # sound_file = wiktionary.try_download_sound()
-        #     article = wiktionary.try_get_article()
-        #     image_file = wiktionary.try_download_image()
-        #     transcription = wiktionary.try_get_transcription()
-        #     part_of_speech = wiktionary.try_get_part_of_speech()
-        #     plural = wiktionary.try_get_plural_form()
+        if self.source_language == 'Dutch':
+            wiktionary = DutchWiktionaryWord(word, self.working_dir)
+            # the quality is so bad, so better always use gTTS
+            # sound_file = wiktionary.try_download_sound()
+            article = wiktionary.try_get_article()
+            image_file = wiktionary.try_download_image()
+            transcription = wiktionary.try_get_transcription()
+            part_of_speech = wiktionary.try_get_part_of_speech()
+            plural = wiktionary.try_get_plural_form()
 
         if sound_file is None:
             sound_file = self.reverso_voice.download_sound(word)
@@ -130,6 +133,7 @@ class AnkiDeckGenerator:
             logging.info(f"The card for the word '{word}' has been created!")
         except Exception as e:
             logging.error(f"Error creating a card for the word '{word}': {e}")
+            self.failed_words.append(word)
 
     def add_words(self, words, skip_empty=True):
         total_words = len(words)

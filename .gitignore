@@ -2,6 +2,6 @@
 .venv
 .test
 *.egg-info
-build
-test
+/build
+/test
 __pycache__

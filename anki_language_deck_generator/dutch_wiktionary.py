@@ -1,6 +1,6 @@
 from pathlib import Path
-import xml.etree.ElementTree as ET
 import requests
+from bs4 import BeautifulSoup
 
 
 class WordNotFoundError(Exception):
@@ -42,138 +42,114 @@ class DutchWiktionaryWord:
             raise WordNotFoundError(f"No translations found for word '{word}'")
 
         # Get Dutch content
-        self.xml_doc = ET.fromstring(data['parse']['text'])
+        self.soup = BeautifulSoup(data['parse']['text'], 'html.parser')
 
     def try_get_sound_file_url(self):
         """Extract sound file URL from the Uitspraak section"""
-        for elem in self.xml_doc:
-            for a in elem.findall(".//a[@class='internal']"):
-                if a.get('href', '').startswith('//upload.wikimedia.org') and a.get('title', '').endswith('.ogg'):
-                    return "https:" + a.get('href')
+        for a in self.soup.find_all("a", class_="internal"):
+            href = a.get('href', '')
+            title = a.get('title', '')
+            if href.startswith('//upload.wikimedia.org') and title.endswith('.ogg'):
+                return "https:" + href
         return None
 
     def try_get_image_url(self):
         """Extract the first content image URL"""
-        for elem in self.xml_doc:
-            # First try images in thumbinner (images with captions)
-            for figure in elem.findall(".//div[@class='thumbinner']"):
-                img = figure.find(".//img[@class='mw-file-element']")
-                if img is not None and 'src' in img.attrib:
-                    # Ignore small icons
-                    width = int(img.get('width', '0'))
-                    if width < 50:
-                        continue
-                    src = img.get('src')
-                    if src.startswith('//upload.wikimedia.org'):
-                        return "https:" + src
+        # First try images in thumbinner (images with captions)
+        for figure in self.soup.find_all("div", class_="thumbinner"):
+            img = figure.find("img", class_="mw-file-element")
+            if img and img.has_attr('src'):
+                width = int(img.get('width', '0'))
+                if width < 50:
+                    continue
+                src = img['src']
+                if src.startswith('//upload.wikimedia.org'):
+                    return "https:" + src
 
-            # Then try regular content images
-            for img in elem.findall(".//img[@class='mw-file-element']"):
-                if 'src' in img.attrib:
-                    # Ignore small icons and system images
-                    width = int(img.get('width', '0'))
-                    if width < 50:
-                        continue
-                    src = img.get('src')
-                    if (
-                        src.startswith('//upload.wikimedia.org') and
-                        not src.endswith(('Icon.svg.png', 'Symbol.svg.png'))
-                    ):
-                        return "https:" + src
+        # Then try regular content images
+        for img in self.soup.find_all("img", class_="mw-file-element"):
+            if img.has_attr('src'):
+                width = int(img.get('width', '0'))
+                if width < 50:
+                    continue
+                src = img['src']
+                if (
+                    src.startswith('//upload.wikimedia.org') and
+                    not src.endswith(('Icon.svg.png', 'Symbol.svg.png'))
+                ):
+                    return "https:" + src
         return None
 
     def try_get_transcription(self):
         """Extract IPA transcription"""
-        for elem in self.xml_doc:
-            for span in elem.findall(".//span[@class='IPAtekst']"):
-                return span.text
+        span = self.soup.find("span", class_="IPAtekst")
+        if span:
+            return span.get_text()
         return None
 
     def try_get_article(self):
         """Determine if it's 'de' or 'het' based on genus markers"""
         # Find Zelfstandig naamwoord header and get next paragraph
-        zn_found = False
-        for elem in self.xml_doc:
-            # Mark when we find the Zelfstandig_naamwoord header within its div container
-            if (elem.tag == 'div' and
-                    elem.get('class') == 'mw-heading mw-heading4' and
-                    elem.find('h4[@id="Zelfstandig_naamwoord"]') is not None):
-                zn_found = True
-                continue
-            # Get the first paragraph after the header
-            if zn_found and elem.tag == 'p':
-                # Get all genus markers from spans inside links
+        zn_header = self.soup.find("h4", id="Zelfstandig_naamwoord")
+        if zn_header:
+            # Find the next paragraph after the header
+            p = zn_header.find_next("p")
+            if p:
                 genus_markers = []
-                for a in elem.findall(".//a[@title='WikiWoordenboek:Genus']"):
-                    span = a.find(".//span")
-                    if span is not None and span.text:
-                        marker = span.text.strip()
+                for a in p.find_all("a", title="WikiWoordenboek:Genus"):
+                    span = a.find("span")
+                    if span and span.get_text():
+                        marker = span.get_text().strip()
                         if marker in ['m', 'v', 'o', 'g']:
                             genus_markers.append(marker)
-
-                # Convert markers to article
                 if 'o' in genus_markers:
                     if any(m in ['m', 'v', 'g'] for m in genus_markers):
                         return "de/het"
                     return "het"
                 if any(m in ['m', 'v', 'g'] for m in genus_markers):
                     return "de"
-                break
-
         return None
 
     def try_get_part_of_speech(self):
         """Get the part of speech (woordsoort) from the header"""
-        # Look for heading divs containing part of speech headers
-        for elem in self.xml_doc:
-            if elem.tag == 'div' and elem.get('class') == 'mw-heading mw-heading4':
-                h4 = elem.find('h4')
-                if h4 is not None:
-                    # Common parts of speech to check for
-                    pos_set = {
-                        'Zelfstandig_naamwoord',
-                        'Werkwoord',
-                        'Bijvoeglijk_naamwoord',
-                        'Bijwoord',
-                        'Tussenwerpsel',
-                        'Voornaamwoord',
-                        'Voorzetsel'
-                    }
-
-                    # Check if header id matches any part of speech
-                    pos_id = h4.get('id')
-                    if pos_id in pos_set:
-                        return ' '.join(pos_id.lower().split('_'))
-
+        pos_set = {
+            'Zelfstandig_naamwoord',
+            'Werkwoord',
+            'Bijvoeglijk_naamwoord',
+            'Bijwoord',
+            'Tussenwerpsel',
+            'Voornaamwoord',
+            'Voorzetsel'
+        }
+        for h4 in self.soup.find_all("h4"):
+            pos_id = h4.get('id')
+            if pos_id in pos_set:
+                return ' '.join(pos_id.lower().split('_'))
         return None
 
     def try_get_plural_form(self):
         """Get plural form from the infobox table"""
-        # Find the infobox table first
-        for table in self.xml_doc.findall(".//table[@class='infobox']"):
-            # Look for the row containing meervoud in header
-            for tr in table.findall(".//tr"):
-                headers = tr.findall("th")
-                if not headers:
-                    continue
-
-                # Check if this row contains the meervoud column
-                meervoud_col = -1
+        for table in self.soup.find_all("table", class_="infobox"):
+            # Find the header row with 'meervoud'
+            header_row = None
+            for tr in table.find_all("tr"):
+                headers = tr.find_all("th")
                 for i, th in enumerate(headers):
-                    if th.find(".//a[@title='meervoud']") is not None:
+                    a = th.find("a", title="meervoud")
+                    if a:
+                        header_row = tr
                         meervoud_col = i
                         break
-
-                if meervoud_col >= 0:
-                    # Found the header row, now look for naamwoord row
-                    for row in table.findall(".//tr"):
-                        td = row.find("td[@class='infoboxrijhoofding']")
-                        if td is not None and 'naamwoord' in ''.join(td.itertext()).lower():
-                            # Get the meervoud cell
-                            cells = row.findall("td")
-                            if len(cells) > meervoud_col:
-                                return ''.join(cells[meervoud_col].itertext()).strip()
-
+                if header_row:
+                    break
+            if header_row:
+                # Find the row with 'naamwoord'
+                for row in table.find_all("tr"):
+                    td = row.find("td", class_="infoboxrijhoofding")
+                    if td and 'naamwoord' in td.get_text().lower():
+                        cells = row.find_all("td")
+                        if len(cells) > meervoud_col:
+                            return cells[meervoud_col].get_text(strip=True)
         return None
 
     def try_download_sound(self):

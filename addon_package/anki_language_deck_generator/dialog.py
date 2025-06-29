@@ -150,7 +150,12 @@ class DeckGeneratorDialog(QDialog):
                     )
                 )
                 self.main_window.deckBrowser.refresh()
-                showInfo('Deck generated and imported successfully!')
+
+                # Show failed words dialog if any
+                if generator.failed_words:
+                    self.show_failed_words_dialog(generator.failed_words)
+                else:
+                    showInfo('Deck generated and imported successfully!')
                 self.accept()
 
             except Exception as e:
@@ -160,3 +165,23 @@ class DeckGeneratorDialog(QDialog):
                 # Re-enable generate button and hide progress bar
                 self.generate_btn.setEnabled(True)
                 self.progress_bar.hide()
+
+    def show_failed_words_dialog(self, failed_words):
+        # Show a dialog with a QTextEdit containing failed words, one per line, selectable and copyable
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Some words failed to process')
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        label = QLabel('The following words could not be processed. You can copy them below:')
+        layout.addWidget(label)
+        text_edit = QTextEdit()
+        text_edit.setReadOnly(True)
+        text_edit.setPlainText('\n'.join(failed_words))
+        layout.addWidget(text_edit)
+        btn_layout = QHBoxLayout()
+        ok_btn = QPushButton('OK')
+        ok_btn.clicked.connect(dialog.accept)
+        btn_layout.addStretch()
+        btn_layout.addWidget(ok_btn)
+        layout.addLayout(btn_layout)
+        dialog.exec()

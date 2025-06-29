@@ -40,6 +40,12 @@ def main():
     deck_generator.add_words(words)
     deck_generator.save_deck(args.output)
 
+    # Print failed words if any
+    if deck_generator.failed_words:
+        print("\nFailed words:")
+        for w in deck_generator.failed_words:
+            print(w.strip())
+
     if not args.working_dir:
         temp_dir.cleanup()  # Clean up the temporary directory if it was used
 

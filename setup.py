@@ -29,6 +29,11 @@ setup(
         'beautifulsoup4==4.12.3',
         'gTTS==2.5.4',
     ],
+    extras_require={
+        'dev': [
+            'pytest',
+        ]
+    },
     entry_points={
         'console_scripts': [
             'anki-language-deck-generator=anki_language_deck_generator.__main__:main',

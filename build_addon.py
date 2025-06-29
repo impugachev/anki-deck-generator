@@ -41,10 +41,20 @@ def create_addon_package(output_path=None, output_dir=None):
         shutil.copytree('addon_package', addon_dir, dirs_exist_ok=True)
 
         # 2. Copy anki_language_deck_generator into addon_package
+        def ignore_func(src, names):
+            ignored = set()
+            # Always ignore 'test' directory at any level
+            if 'test' in names:
+                ignored.add('test')
+            # Ignore '__init__.py' only at the top-level package directory
+            if src == 'anki_language_deck_generator' and '__init__.py' in names:
+                ignored.add('__init__.py')
+            return ignored
+
         shutil.copytree(
             'anki_language_deck_generator',
             addon_dir / 'anki_language_deck_generator',
-            ignore=lambda src, _: {'__init__.py'} if src == 'anki_language_deck_generator' else set(),
+            ignore=ignore_func,
             dirs_exist_ok=True
         )
 
